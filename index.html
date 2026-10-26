@@ -113,7 +113,7 @@ const SKILLS=[
 {name:'단해',desc:'큰 파도가 말려 올라 앞을 덮치고, 땅에 물웅덩이가 남는다',pal:'ocean',kind:'wave',dur:170},
 {name:'금륜진',desc:'금빛 기둥과 반짝이, 적마다 감기는 보라·금 고리, 마지막에 큰 천구가 모두를 감싼다',pal:'gold',kind:'sphere',dur:150},
 {name:'자월참',desc:'보랏빛 회전 베기 뒤에 보랏빛 소용돌이가 날아간다',pal:'void',kind:'vortex',dur:90},
-{name:'취엽비',desc:'초록 고리가 겹겹이 굴러가며 잎 칼날을 흩뿌린다',pal:'jade',kind:'hoops',dur:88},
+{name:'취엽비',desc:'연두빛 회오리 고리 원반이 날아가고, 초록 가루를 끌며 돌진해 큰 초승달로 벤다',pal:'jade',kind:'hoops',dur:100},
 {name:'태극인',desc:'푸른 기운 속에 태극이 날아가고, 발밑에 태극 진이 펼쳐진다',pal:'yin',kind:'taiji',dur:130},
 {name:'빙륜',desc:'얼음 고리가 퍼지며 땅에서 얼음 가시가 뻗어 나와 부서진다',pal:'ice',kind:'ice',dur:96}];
 let cur=0,tier=2,glowOn=true,auto=true,autoT=0,idc=1;
@@ -129,11 +129,6 @@ function runFx(e){if(CUSTOM[e.kind]){const r=CUSTOM[e.kind](e);e.t++;return r!==
    field(vx,vy,R+3,.8,pi,1,(d,a)=>{if(d>R+2)return 0;const sp=((a/TAU)*2+d*.07-f*.09)%1,arm=Math.exp(-Math.pow(((sp+1)%1-.5)/.08,2));return (arm*1.3*(1-d/(R+3))+(d<R*.25?1.2:0)+Math.exp(-Math.pow((d-R)/1.2,2))*.8)*fade});
    if(v%2===0)spark(vx-R*.6,vy+(Math.random()-.5)*R,-1-Math.random(),(Math.random()-.5)*.6,24,3,{star:1});light(vx,vy,R*3,pi,.55*fade);
    hitArea(e.id+'v',m=>Math.hypot(m.x-vx,m.y-vy-8)<R+6,60*T,-1,vx,vy);for(const m of mobs)if(Math.hypot(m.x-vx,m.y-vy)<R*2.5){m.vx+=(vx-m.x)*.01;m.vy+=(vy-m.y)*.01}}break}
- case'hoops':{const run=ease(Math.min(1,t/60)),bx=hx+20+220*k*run,by=hy-6,R=(16+T*3)*Math.min(1,t/8),fade=t>70?clamp(1-(t-70)/18,0,1):1;
-  for(let j=0;j<2+(T>2?1:0);j++){const oy=j*7-5,spin=f*.3+j;const st=.6/R;for(let a=0;a<TAU;a+=st){const br=.5+.5*Math.cos(a-spin),x=bx+Math.cos(a)*R*.55+j*4,y=by+oy+Math.sin(a)*R;for(let o=-1.5;o<=1.5;o+=.5)add(x+o,y,(.38+.72*br)*(1-Math.abs(o)/2.5)*fade,pi,1)}}
-  for(let q=0;q<3+T;q++){const a=f*.12+q/(3+T)*TAU,lx=bx+Math.cos(a)*R*1.6,ly=by+Math.sin(a)*R*.9;field(lx,ly,5,1,pi,1,(d,an)=>{const al=an-(a+1.57),uu=Math.cos(al)*d,ww=Math.sin(al)*d;return Math.abs(ww)<2.2*(1-Math.pow(uu/5,2))?(Math.abs(ww)<.6?1.35:1)*fade:0})}
-  for(let s=0;s<3;s++)spark(bx-R*.4,by+(Math.random()-.5)*R*1.6,-1.5-Math.random(),0,14,pi);light(bx,by,R*3,pi,.5*fade);
-  hitArea(e.id,m=>Math.abs(m.x-bx)<R&&Math.abs(m.y-by-8)<R*1.1,70*T,2.6,bx-20,by);break}
  case'taiji':{const ic=PI.ice;hero.aura=40;hero.auraPal=ic;
   if(t<60){const run=ease(Math.min(1,t/50)),cx=hx+30+150*k*run,cy=hy-18,R=(16+T*3)*Math.min(1,t/10),rot=f*.15;
    field(cx,cy,R+3,1,pi,1,(d,a,dx,dy)=>{if(d>R)return Math.exp(-Math.pow((d-R-1.2)/1.1,2))*1.1;const c=Math.cos(rot),s=Math.sin(rot),X=dx*c+dy*s,Y=-dx*s+dy*c,h=R/2;let w=X>0;const dT=Math.hypot(X,Y+h),dB=Math.hypot(X,Y-h);if(dT<h)w=true;if(dB<h)w=false;if(dT<R/7)w=false;if(dB<R/7)w=true;return w?.7:.16});
@@ -174,7 +169,7 @@ function render(){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;let sx=x;if(HS[i]>0)sx=clamp(x+Math.round(Math.sin(y*.7+frame*.45)*HS[i]*1.6),0,W-1);let c=ground[y*W+sx];const d=DI[i];if(d>.35)c=DECAL[DP[i]];B[i]=c}
  G.fill(0);shadeLayer(0);for(let i=0;i<N;i++){if(OF[i])B[i]=OF[i];if(OG[i])G[i]=OG[i]}
  const ents=[...mobs.map(m=>({y:m.y,m})),{y:hero.y,h:1}].sort((a,b)=>a.y-b.y);
- for(const o of ents){if(o.h){shadow(hero.x,hero.y);const hx2=hero.x+(hero.lean>0?2:0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false,hero.pal);if(!hero.pal)sword(hx2,hy2,false)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0&&!m.burn,true,(m.burn>0?MOBB:MOBP)[m.pal]);if(!m.flash)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
+ for(const o of ents){if(o.h){shadow(hero.x+Math.round(hero.ox||0),hero.y);const hx2=hero.x+(hero.lean>0?2:0)+Math.round(hero.ox||0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false,hero.pal);if(!hero.pal)sword(hx2,hy2,false)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0&&!m.burn,true,(m.burn>0?MOBB:MOBP)[m.pal]);if(!m.flash)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
  for(let i=0;i<N;i++)if(OV[i])B[i]=OV[i];
  shadeLayer(1);
  for(let i=nums.length-1;i>=0;i--){const n=nums[i];n.y-=.3;n.life--;digits(n.v,n.x|0,n.y|0,n.crit?YEL:WHITE);if(n.life<=0)nums.splice(i,1)}
@@ -196,4 +191,4 @@ const ab=document.getElementById('autoBtn');function syncAuto(){ab.setAttribute(
 // 시험용: 자동 재생을 끄고 i번 스킬을 t단계로 쓴다
 window.__show=(i,t)=>{auto=false;syncAuto();tier=t;fx=[];cast(i)};
 fit();cast(0);autoT=SKILLS[0].dur+30;requestAnimationFrame(step);
-</script><script src="wave.js"></script><script src="fire.js"></script><script src="crimson.js"></script><script src="sphere.js"></script></body></html>
+</script><script src="wave.js"></script><script src="fire.js"></script><script src="crimson.js"></script><script src="sphere.js"></script><script src="hoops.js"></script></body></html>
