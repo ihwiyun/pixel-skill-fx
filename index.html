@@ -97,6 +97,13 @@ const nums=[],parts=[],marks=[];let fx=[],lights=[],shake=0;
 function hitArea(id,test,dmg,push,cx,cy,opt){for(const m of mobs){if(m.hit[id])continue;if(test(m)){m.hit[id]=1;m.flash=6;const a=Math.atan2(m.y-cy,m.x-cx);m.vx+=Math.cos(a)*push;m.vy+=Math.sin(a)*push*.6;{const crit=Math.random()<.22;if(crit||Math.random()<.35)nums.push({x:m.x-5,y:m.y-36,v:Math.round(dmg*(crit?1.8:1)*(.85+Math.random()*.3)),life:36,crit})}marks.push({x:m.x,y:m.y-14,life:10,pi:opt&&opt.pi!==undefined?opt.pi:3});if(opt&&opt.burn)m.burn=90}}}
 function stars(x,y){for(let k=0;k<3;k++){const a=frame*.12+k*TAU/3,sx=x+Math.cos(a)*9|0,sy=y+Math.sin(a)*3|0,c=hex('#ffe27a');put(sx,sy,c,true);put(sx+1,sy,c,true);put(sx-1,sy,c,true);put(sx,sy+1,c,true);put(sx,sy-1,c,true)}}
 function splash(x,y,n){const u=n/20,c1=hex('#f2fbff'),c2=hex('#69b8f4'),c3=hex('#1650b4');for(let k=0;k<20;k++){const a=k/20*Math.PI*1.4-.7+(1-u)*2,r=6+k*.25,px=x+Math.cos(a)*r*.55|0,py=y-14-k*.9+Math.sin(a)*2|0;if(hash(k,n,3)<u*1.2){put(px,py,k%3?c1:c2,true);put(px+1,py,c3)}}}
+// 방어 깨짐 표시: 맞은 적 머리 위 방패가 지그재그로 갈라져 벌어진다
+const SHC={o:hex('#4a0a08'),a:hex('#ff8a6a'),b:hex('#d8392c')};
+const SH=['..oooooooo..','.oaaaaaaaao.','oaabbbbbbaao','oabbbbbbbbao','oabbbbbbbbao','oabbbbbbbbao','.oabbbbbbao.','.oabbbbbbao.','..oabbbbao..','...oabbao...','....oaao....','.....oo.....'];
+const ZZ=[6,5,7,5,6,4,6,5,6,5,6,6];
+function shields(){for(const m of mobs){if(!m.shield)continue;m.shield--;const sp=Math.min(5,(40-m.shield)*.4),x=m.x-6,y=m.y-54;
+ for(let r=0;r<12;r++)for(let k=0;k<12;k++){const ch=SH[r][k];if(ch==='.')continue;const left=k<ZZ[r];if(k===ZZ[r]||k===ZZ[r]-1&&ch!=='o'){pv(x+k+(left?-sp:sp),y+r,SHC.o);continue}pv(x+k+(left?-sp:sp),y+r+(left?0:1),SHC[ch])}}}
+
 function spark(x,y,vx,vy,life,pi,o){parts.push(Object.assign({x,y,vx,vy,life,max:life,pi,grav:0,drag:.97,size:1,L:1},o||{}))}
 function light(x,y,r,pi,a){lights.push({x,y,r,pi,a})}
 // ── 스킬 8개 ──
@@ -104,7 +111,7 @@ const SKILLS=[
 {name:'화룡장',desc:'불꽃 용이 몸을 감고 돌다가, 땅을 따라 불길이 휩쓸고 나간다',pal:'fire',kind:'dragon',dur:150},
 {name:'홍련검',desc:'그림자 모습으로 분홍 초승달 베기, 긴 찌르기, 분홍 소용돌이 폭발. 맞은 적은 방패가 깨진다',pal:'crimson',kind:'lotus',dur:100},
 {name:'단해',desc:'큰 파도가 말려 올라 앞을 덮치고, 땅에 물웅덩이가 남는다',pal:'ocean',kind:'wave',dur:170},
-{name:'금륜진',desc:'금빛 고리 여러 개가 공처럼 몸을 감싸고 돌며 여러 번 때린다',pal:'gold',kind:'sphere',dur:150},
+{name:'금륜진',desc:'금빛 기둥과 반짝이, 적마다 감기는 보라·금 고리, 마지막에 큰 천구가 모두를 감싼다',pal:'gold',kind:'sphere',dur:150},
 {name:'자월참',desc:'보랏빛 회전 베기 뒤에 보랏빛 소용돌이가 날아간다',pal:'void',kind:'vortex',dur:90},
 {name:'취엽비',desc:'초록 고리가 겹겹이 굴러가며 잎 칼날을 흩뿌린다',pal:'jade',kind:'hoops',dur:88},
 {name:'태극인',desc:'푸른 기운 속에 태극이 날아가고, 발밑에 태극 진이 펼쳐진다',pal:'yin',kind:'taiji',dur:130},
@@ -115,12 +122,6 @@ function cast(i){cur=i;const s=SKILLS[i];fx.push({...s,t:0,tier,id:idc++,pi:PI[s
  document.querySelectorAll('#skills button').forEach((b,k)=>b.setAttribute('aria-pressed',k===i));}
 function runFx(e){if(CUSTOM[e.kind]){const r=CUSTOM[e.kind](e);e.t++;return r!==false&&e.t<e.dur}const T=e.tier,t=e.t,u=t/e.dur,k=1+(T-1)*.2,f=frame,pi=e.pi,hx=hero.x,hy=hero.y;
  switch(e.kind){
- case'sphere':{const cx=hx,cy=hy-16,Rs=(42+T*7)*ease(Math.min(1,t/16)),fade=u>.85?(1-u)/.15:1,n=3+T,rot=f*.04;
-  field(cx,hy+2,Rs*1.05,.35,pi,0,(d,a)=>{const r1=Math.exp(-Math.pow((d-Rs)/1.2,2)),r2=Math.exp(-Math.pow((d-Rs*.75)/1,2))*.8,glyph=d>Rs*.8&&d<Rs*.95&&hash((a*12+f*.02)|0,(d/3)|0,9)>.55?.8:0;return Math.max(r1,r2,glyph)*fade});
-  for(let j=0;j<n;j++){const tilt=j/n*Math.PI+.3,ux=Math.cos(tilt),uz=Math.sin(tilt),st=.7/Rs;for(let a=0;a<TAU;a+=st){let X=Math.cos(a)*Rs*ux,Y=Math.sin(a)*Rs,Z=Math.cos(a)*Rs*uz;const yr=rot*(j%2?1:-1.3),X2=X*Math.cos(yr)-Z*Math.sin(yr),Z2=X*Math.sin(yr)+Z*Math.cos(yr);const sx=cx+X2,sy=cy-Y*.85+Z2*.25,front=Z2>0;add(sx,sy,(front?1.3:.75)*fade,pi,front?1:0);if(front)add(sx+1,sy,1*fade,pi,1)}}
-  if(t%3===0){const a=Math.random()*TAU;spark(cx+Math.cos(a)*Rs*.8,cy+Math.sin(a)*Rs*.6,0,-.3-Math.random()*.5,30,pi,{star:1})}
-  for(let c=0;c<3;c++)flame(hx+(c-1)*3,hy,10+T*2,2.6,.9,1);
-  light(cx,cy,Rs*2,pi,.5*fade);if(t%30===10){e.id=idc++;hitArea(e.id,m=>Math.hypot(m.x-cx,(m.y-hy)/.6)<Rs*1.1,80*T,2.2,cx,hy);shake=T>=3?3:1}break}
  case'vortex':{if(t<22){const R=(34+T*4)*k,prog=Math.min(1,t/12),fade=1-t/22,a0=-Math.PI*.6,span=TAU*1.15;
    field(hx,hy-6,R+4,.6,pi,1,(d,a)=>{const rel=((a-a0)%TAU+TAU)%TAU+(a<a0?0:0);if(rel>span*prog)return 0;const behind=(span*prog-rel)/span,band=Math.exp(-Math.pow((d-R*.75)/(R*.12*(1-behind*.5)+1.2),2));return band*(1.4-behind*1.5)*fade});
    if(t===6)hitArea(e.id,m=>Math.hypot(m.x-hx,(m.y-hy)/.6)<R+8,80*T,2.5,hx,hy);light(hx,hy,R*1.6,pi,.5*fade)}
@@ -160,7 +161,7 @@ function tick(){frame++;lights=[];OF.fill(0);OV.fill(0);OG.fill(0);
  for(const m of mobs){m.vx+=(m.hx-m.x)*.01;m.vy+=(m.hy-m.y)*.01;m.x+=m.vx;m.y+=m.vy;m.vx*=.86;m.vy*=.86;if(m.flash)m.flash--;m.y=clamp(m.y,60,262);if(m.stun)m.stun--;if(m.splash)m.splash--;if(m.x<hero.x+18){m.x=hero.x+18;m.vx=Math.abs(m.vx)}
   if(m.burn>0){m.burn--;if(m.burn%2===0)for(let c=0;c<3;c++)flame(m.x-6+c*6,m.y-4-(c&1)*6,12,2,.62,1);if(m.burn%30===0)nums.push({x:m.x-4,y:m.y-36,v:12+(Math.random()*8|0),life:30,crit:false})}}
  if(hero.lean>0)hero.lean--;if(hero.aura>0){hero.aura--;for(let c=0;c<3;c++)flame(hero.x-4+c*4,hero.y,14,2,1,1)}
- fx=fx.filter(runFx);
+ fx=fx.filter(runFx);shields();
  for(let i=parts.length-1;i>=0;i--){const q=parts[i];q.x+=q.vx;q.y+=q.vy;q.vy+=q.grav;q.vx*=q.drag;q.vy*=q.drag;q.life--;const l=q.life/q.max;
   const v=q.pi===8?.9*l+.3:.35+1.1*l;if(q.star){add(q.x,q.y,v+.3,q.pi,1);if(l>.4){add(q.x+1,q.y,v,q.pi,1);add(q.x-1,q.y,v,q.pi,1);add(q.x,q.y+1,v,q.pi,1);add(q.x,q.y-1,v,q.pi,1)}}
   else if(q.puff){const r=q.size*(1.8-l*.8);for(let a=-r;a<=r;a++)for(let b=-r;b<=r;b++)if(a*a+b*b<r*r*(.6+.4*hash(a|0,b|0,i)))add(q.x+a,q.y+b*.8,v*(1-Math.hypot(a,b)/r*.4),q.pi,q.L)}
@@ -195,4 +196,4 @@ const ab=document.getElementById('autoBtn');function syncAuto(){ab.setAttribute(
 // 시험용: 자동 재생을 끄고 i번 스킬을 t단계로 쓴다
 window.__show=(i,t)=>{auto=false;syncAuto();tier=t;fx=[];cast(i)};
 fit();cast(0);autoT=SKILLS[0].dur+30;requestAnimationFrame(step);
-</script><script src="wave.js"></script><script src="fire.js"></script><script src="crimson.js"></script></body></html>
+</script><script src="wave.js"></script><script src="fire.js"></script><script src="crimson.js"></script><script src="sphere.js"></script></body></html>

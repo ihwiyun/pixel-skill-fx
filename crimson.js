@@ -15,11 +15,6 @@ function crescent(cx,cy,rx,ry,tilt,a0,a1,head,len,th,P){const ct=Math.cos(tilt),
 
 function smoke(x,y,r,t,seed,P){for(let yy=y-r|0;yy<=y+r;yy++)for(let xx=x-r*2.2|0;xx<=x+r*2.2;xx++){const d=Math.hypot((xx-x)/2.2,yy-y),e=r*(.55+.55*vn(xx*.12+seed+t*.15,yy*.5));if(d>e)continue;if(d>e*.8&&((yy+(t>>1))&1))continue;(P||pb)(xx,yy,d<e*.65?S1:d<e*.9?S2:S3)}}
 
-const SH=['..oooooooo..','.oaaaaaaaao.','oaabbbbbbaao','oabbbbbbbbao','oabbbbbbbbao','oabbbbbbbbao','.oabbbbbbao.','.oabbbbbbao.','..oabbbbao..','...oabbao...','....oaao....','.....oo.....'];
-const ZZ=[6,5,7,5,6,4,6,5,6,5,6,6];
-function shields(){const C={o:c('#4a0a08'),a:c('#ff8a6a'),b:c('#d8392c')};for(const m of mobs){if(!m.shield)continue;m.shield--;const sp=Math.min(5,(40-m.shield)*.4),x=m.x-6,y=m.y-54;
- for(let r=0;r<12;r++)for(let k=0;k<12;k++){const ch=SH[r][k];if(ch==='.')continue;const left=k<ZZ[r];if(k===ZZ[r]||k===ZZ[r]-1&&ch!=='o'){pv(x+k+(left?-sp:sp),y+r,C.o);continue}pv(x+k+(left?-sp:sp),y+r+(left?0:1),C[ch])}}}
-
 CUSTOM.lotus=e=>{const t=e.t,kk=.85+.15*e.tier,hx=hero.x,hy=hero.y,T=e.tier;
  hero.pal=t<e.dur-4?SHADOW:null;
  // 그림자 연기(몸 뒤로 끌림)
@@ -48,6 +43,6 @@ CUSTOM.lotus=e=>{const t=e.t,kk=.85+.15*e.tier,hx=hero.x,hy=hero.y,T=e.tier;
    const n=vn(x*.22+e.seed,y*.22-v*.08)*.65+vn(x*.5,y*.5+v*.1)*.35,sw=frac(ang/TAU*2+rr*1.2-v*.03);
    if(sw<.07)pa(x,y,MAG,.7*fd);else if(n>.62)pa(x,y,n>.7?PL:LPK,.8*fd);else if(n>.5)pa(x,y,PNK,.65*fd);else pa(x,y,PNK,(.35+.3*rr)*fd)}
   if(v===4){e.id=idc++;const hit=m=>Math.hypot(m.x-ox,(m.y-14-oy)*RX/RY)<RX*1.1;for(const m of mobs)if(hit(m))m.shield=40;hitArea(e.id,hit,110*T,1.8,ox,oy,{pi:1});shake=T>=3?6:4}}}
- shields();
+
  if(t===e.dur-1)hero.pal=null};
 })();
