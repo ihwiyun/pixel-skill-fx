@@ -1,22 +1,22 @@
 'use strict';
 // 금륜진 — 레퍼런스(11.7~16.4초)를 1초 20장으로 뽑고 4칸=1픽셀로 줄여 프레임마다 위치·크기·색을 잰 값. 크기는 레퍼런스 픽셀 × kk
-// (레퍼런스 인물 키 50픽셀, 여기 인물 키 28픽셀이라 Z=0.56으로 줄여 인물과의 비율을 맞춤). 틱 t = (레퍼런스 n번째 장-11)×3
+// (인물 키도 레퍼런스처럼 48픽셀이라 Z=1, 레퍼런스 픽셀 그대로). 틱 t = (레퍼런스 n번째 장-11)×3
 // 1마디(0~45): 은빛 세로 베기 → 금빛 원판 → 여러 겹 금줄 고리가 화면 끝까지 퍼짐(적 하얗게→반투명, 큰 금 초승달·과녁) → 아래 흰 베기 → 두 번째 고리
 // 2마디(60~126): 몸에 금빛 불꽃 → 보라 초승달 칼날(키 63)이 오른쪽 적으로 날아감 → 보라 과녁·깨진 방패 → 금가루가 흐름
 // 3마디(118~190): 칼 치켜듦·별빛 → 맞은 적 둘레에 보라 띠·금 테 고리 → 하얗게 번쩍 → 찌르기 → 큰 보라 타원·금빛 사선
 // 4마디(190~288): 활 같은 빛줄기가 하나씩 그어져 공이 됨 → 찌르기 별빛 → 하얀 빛 → 큰 금빛 땅 고리가 화면 밖으로 퍼짐
 (function(){
-const Z=.56;
+const Z=1;
 const c=hex,G1=c('#5a3206'),G2=c('#c07a12'),G3=c('#ffc531'),G4=c('#fff1a8'),WH=c('#fffdf2'),OR=c('#c8682a'),
  P1=c('#3a2482'),P2=c('#7048d8'),P3=c('#b49cf6'),P4=c('#e9e0ff'),SL=c('#c9d2e0'),SD=c('#6c7488'),B3=c('#7ab8ff'),B4=c('#d6ecff'),OU=c('#3a1e06'),DB=c('#4a2a10');
 // 손으로 찍은 표시: 큰 금 초승달(o 테두리, Y 금, W 밝은 가운데)
-const CRES=['...oo.','..oYYo','.oYWo.','.oYWo.','oYWo..','oYWo..','oYWo..','oYWo..','oYWo..','oYWo..','oYWo..','.oYWo.','.oYWo.','..oYYo','...oo.'];
+const CRES=(()=>{const In=(x,y)=>Math.hypot(x-13,y)<=13.5&&Math.hypot(x-19,y)>13.6,a=[];for(let y=-13;y<=13;y++){let r='';for(let x=0;x<12;x++){if(!In(x,y)){r+='.';continue}const edge=!In(x-1,y)||!In(x+1,y)||!In(x,y-1)||!In(x,y+1);r+=edge?'o':Math.abs(y)<8&&In(x-1,y)&&In(x-2,y)?'W':'Y'}a.push(r)}return a})();
 const CRC={o:OU,Y:G3,W:G4};
-function cres(x,y,flip,a){for(let r=0;r<15;r++)for(let k=0;k<6;k++){const ch=CRES[r][flip?5-k:k];if(ch==='.')continue;if(a<1&&hash(x+k,y+r,frame>>1)>a)continue;pv(x-3+k,y-7+r,CRC[ch],ch==='W')}}
+function cres(x,y,flip,a){for(let r=0;r<27;r++)for(let k=0;k<12;k++){const ch=CRES[r][flip?11-k:k];if(ch==='.')continue;if(a<1&&hash(x+k,y+r,frame>>1)>a)continue;pv(x-5+k,y-13+r,CRC[ch],ch==='W')}}
 // 과녁: 연노랑 테 동그라미(반지름 6), 안은 어두운 갈색·금 바둑판, 금 십자가 테 밖으로 3칸, 가운데 흰 점
-const XH=(()=>{const a=[];for(let y=-9;y<=9;y++){let row='';for(let x=-9;x<=9;x++){const d=Math.hypot(x,y);row+=(x===0||y===0)&&Math.abs(x+y)<=9?(Math.abs(x+y)<=1?'w':'g'):d>5.4&&d<6.5?'r':d<=5.4?((x+y)&1?'D':(x&y&1?'d':'.')):'.'}a.push(row)}return a})();
+const XH=(()=>{const a=[];for(let y=-16;y<=16;y++){let row='';for(let x=-16;x<=16;x++){const d=Math.hypot(x,y);row+=(x===0||y===0)&&Math.abs(x+y)<=16?(Math.abs(x+y)<=1?'w':'g'):d>10.4&&d<11.6?'r':d<=10.4?(x&y&1?'D':((x+1)&(y+1)&1&&(x+y)%4===0?'d':'.')):'.'}a.push(row)}return a})();
 const XC={w:WH,g:G3,r:G4,D:c('#2a1608'),d:G1};
-function xhair(x,y,a){for(let r=0;r<19;r++)for(let k=0;k<19;k++){const ch=XH[r][k];if(ch==='.')continue;if(a<1&&hash(x+k,y+r,frame>>1)>a)continue;pv(x-9+k,y-9+r,XC[ch],ch==='w')}}
+function xhair(x,y,a){for(let r=0;r<33;r++)for(let k=0;k<33;k++){const ch=XH[r][k];if(ch==='.')continue;if(a<1&&hash(x+k,y+r,frame>>1)>a)continue;pv(x-16+k,y-16+r,XC[ch],ch==='w')}}
 function star4(x,y,lx,ly,a){for(let k=-lx;k<=lx;k++){const f=1-Math.abs(k)/lx;if(f*a<.08)continue;pv(x+k,y,f>.6?WH:f>.3?G4:G3,f>.2)}
  for(let k=-ly;k<=ly;k++){const f=1-Math.abs(k)/ly;if(f*a<.08)continue;pv(x,y+k,f>.6?WH:f>.3?G4:G3,f>.2)}pv(x+1,y,WH,true);pv(x-1,y,WH,true);pv(x,y+1,WH,true);pv(x,y-1,WH,true)}
 // 초승달 띠: 원호를 따라 가운데 두껍고 끝이 가늘다. cols는 바깥(볼록한 쪽)→안쪽
@@ -65,7 +65,7 @@ CUSTOM.sphere=e=>{const t=e.t,kk=Z*(.8+.05*e.tier),q=v=>v*kk,hx=hero.x,hy=hero.y
   // 잰 값: 원판 49×24 → 117×73(줄 6겹) → 145×88(3겹) → 150×90(2겹) 뒤 끊기며 사라짐. 가운데는 발보다 16 위
   const rx=q(v<2?49:v<3?49+68*(v-2):v<6?117+28*(v-3)/3:v<9?145+5*(v-6)/3:150),ry=rx*(v<2?.49:.62),c2=hy-q(v<2?13:16);
   if(v<2)burst(hx,c2,rx,ry);else gring(hx,c2,rx,ry,v<4?6:v<7?3:2,v<9?1:clamp(1-(v-9)/26,0,1)*.75);
-  for(const m of M){if(m.wv>=wv)continue;if(Math.hypot((m.x-hx)/Math.max(rx,q(130)),(m.y-q(14)-c2)/Math.max(ry,q(95)))<1){m.wv=wv;hit(m,v<4?6:3,14);m.gm=36;if((M.indexOf(m)+wv)%4===0)m.xh=24}}}
+  for(const m of M){if(m.wv>=wv)continue;if(Math.hypot((m.x-hx)/q(150),(m.y-q(14)-c2)/q(100))<1){m.wv=wv;hit(m,6,14);m.gm=36;if((M.indexOf(m)+wv)%4===0)m.xh=24}}}
  // ── 2마디: 보라 초승달 칼날(#37~45): 키 63, 굵기 10, 한 틱에 3픽셀 ──
  const T=e.tg||(e.tg=M.filter(m=>m.x>hx+8).sort((a,b)=>Math.abs(a.y-hy)*2+a.x-(Math.abs(b.y-hy)*2+b.x))[0]);
  if(t>=78&&t<114){const v=t-78,x=hx+q(v<9?12+4.6*v:53+(v-9)*2.9)-q(4),a=v<28?1:(114-t)/8;
@@ -76,7 +76,7 @@ CUSTOM.sphere=e=>{const t=e.t,kk=Z*(.8+.05*e.tier),q=v=>v*kk,hx=hero.x,hy=hero.y
  if(t>=87&&t<130&&T){for(let n=0;n<4&&t<118;n++)(e.gs||(e.gs=[])).push({x:hx+q(14),y:cy+(Math.random()-.5)*q(10),vx:1.4+Math.random()*2.2,vy:(T.y-q(25)-cy)/30+(Math.random()-.5)*1.6,l:26+Math.random()*14})}
  if(e.gs)for(let i=e.gs.length-1;i>=0;i--){const g=e.gs[i];g.x+=g.vx;g.y+=g.vy;g.vx*=.985;g.l--;const big=g.l>12&&(i&3)===0;pv(g.x,g.y,g.l>10?G4:G3,true);if(big){pv(g.x+1,g.y,G3,true);pv(g.x-1,g.y,G3,true);pv(g.x,g.y+1,G3,true);pv(g.x,g.y-1,G3,true)}if(g.l<=0)e.gs.splice(i,1)}
  // ── 3마디 ── #52: 칼끝 별빛, 금빛 세로 점선 활
- if(t>=123&&t<133){const a=1-(t-123)/10,sx=hx+4+Math.cos(-1.25)*13,sy=hy-15+Math.sin(-1.25)*13;star4(sx,sy,q(26)*a+3,q(20)*a+3,a);
+ if(t>=123&&t<133){const a=1-(t-123)/10,sx=hx+9+Math.cos(-1.25)*22,sy=hy-24+Math.sin(-1.25)*22;star4(sx,sy,q(26)*a+3,q(20)*a+3,a);
   for(const [rx,dir] of [[70,1],[120,1],[80,-1],[150,-1]])for(let a2=-1.1;a2<1.1;a2+=.025)if(frac(a2*7+t*.05)<.4)pb(hx+dir*Math.cos(a2)*q(rx),cy-q(15)+Math.sin(a2)*q(120),G2,true);
   if(t===123)for(const m of M){if(m.x<hx-q(30))hit(m,8,0);if(hash(m.seed*5|0,3,1)<.5)m.st=12}}
  // #54~57, #60~64: 맞은 적 둘레 고리(가로 48, 세로 26, 띠 굵기 7)
