@@ -2,9 +2,10 @@
 <style>body{margin:0;background:#0b0b10;color:#ddd;font:15px system-ui;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px}section{max-width:1280px;width:100%;display:flex;flex-direction:column;gap:6px}video{width:100%;border-radius:6px}h3{margin:14px 0 0}</style></head>
 <body><h2>불 스킬 세 가지 — Claude Code가 유니티를 코드로 조종해 만든 이펙트</h2>
 <section><h3>1. 파이어볼</h3><video src="fireball.mp4" autoplay loop muted playsinline controls></video>
-<p>쏘는 곳에만 마법진 → 마법진 입구에 꽉 찬 불덩이가 입구 분출(앞으로 뿜는 불·충격파 고리)과 함께 짧은 꼬리를 달고 곧게 날아감 → 허수아비에 맞아 크게 폭발(빛살·불구름·불티·파편·연기·그을음·균열).</p></section>
+<p>쏘는 곳에만 마법진 → 마법진 입구에 꽉 찬 불덩이가 입구 분출(앞으로 뿜는 불·충격파 고리)과 함께 짧은 꼬리를 달고 곧게 날아감 → 허수아비 발밑 땅에 맞아 37층 폭발(레퍼런스와 같은 층 구성: 번쩍임 6·땅 8·고리·그릇·컵 모양 메시 10·불덩이·연기 5·작은 입자 8).</p></section>
 <section><h3>2. 불기둥</h3><video src="pillar.mp4" autoplay loop muted playsinline controls></video>
 <p>허수아비 발밑에 마법진이 깔림 → 금빛 나선 빛줄기가 깔때기 모양으로 위로 솟구침 → 바닥에 번개 같은 금빛 균열 → 꺼진 뒤 그을린 허수아비.</p></section>
 <section><h3>3. 메테오</h3><video src="meteor.mp4" autoplay loop muted playsinline controls></video>
-<p>하늘 마법진 입구에서 큰 불덩이 운석이 충격파와 함께 연달아 뿜어져 나옴 → 땅에 맞을 때마다 큰 폭발 → 그을린 균열과 연기가 남음.</p></section>
-<p>만든 도구: Unity 2022.3(무료 개인판). 불·연기·폭발·균열 그림 재료는 Codex 이미지 생성(OpenAI)으로 만듦. 레퍼런스 Excifroge 불 폭발과 같은 시각 장면을 나란히 놓고 맞춤.</p></body></html>
+<p>하늘 마법진 입구에서 큰 불덩이 운석이 충격파와 함께 연달아 뿜어져 나옴 → 땅에 맞을 때마다 37층 폭발 → 그을린 균열과 연기가 남음.</p></section>
+<section><h3>레퍼런스(왼쪽)와 같은 시각 나란히 대조 — 폭발 하나</h3><img src="compare.png" style="width:100%;border-radius:6px"></section>
+<p>만든 도구: Unity 2022.3(무료 개인판). 그림 재료 31장 중 17장은 Codex 이미지 생성(OpenAI, 약관상 결과물 소유·상업 사용 가능)으로, 14장은 코드로 만듦. 셰이더 방식(밝기→색 사다리·디졸브)은 Excifroge VFX Essential Shader(MIT)를 참고해 기본 렌더 파이프라인용으로 새로 씀. 레퍼런스 Excifroge 불 폭발과 같은 시각 장면을 나란히 놓고 맞춤.</p></body></html>
