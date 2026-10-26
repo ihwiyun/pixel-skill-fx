@@ -29,7 +29,8 @@ button:focus-visible{outline:2px solid #ffe27a;outline-offset:2px}
  <div class="grp" id="tiers"></div><span class="sep"></span>
  <div class="grp"><button id="glowBtn" aria-pressed="true">빛 번짐 켜짐</button><button id="autoBtn" aria-pressed="true">자동 재생 켜짐</button></div>
 </div></div>
-<script src="chars.js"></script><script>
+<p style="margin:10px 0 0;color:var(--sub);font-size:.78rem">만든 도구: Three.js (MIT 라이선스, https://threejs.org)</p>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><script src="vfxkit.js"></script><script src="chars.js"></script><script>
 'use strict';
 const W=480,H=270,N=W*H;
 const cv=document.getElementById('cv'),dc=cv.getContext('2d');
@@ -111,16 +112,16 @@ const SKILLS=[
 {name:'화룡장',desc:'불꽃 용이 몸을 감고 돌다가, 땅을 따라 불길이 휩쓸고 나간다',pal:'fire',kind:'dragon',dur:150},
 {name:'홍련검',desc:'그림자 모습으로 분홍 초승달 베기, 긴 찌르기, 분홍 소용돌이 폭발. 맞은 적은 방패가 깨진다',pal:'crimson',kind:'lotus',dur:100},
 {name:'단해',desc:'큰 파도가 말려 올라 앞을 덮치고, 땅에 물웅덩이가 남는다',pal:'ocean',kind:'wave',dur:170},
-{name:'금륜진',desc:'베기마다 금빛 고리가 퍼지고, 보라 초승달이 날아가 과녁을 찍고, 적마다 보라·금 고리가 감긴 뒤 활 같은 선이 모여 공이 되고 찌르기 별빛과 함께 터진다',pal:'gold',kind:'sphere',dur:288,lay:'ring'},
+{name:'금륜진',desc:'금빛 마법진 위에서 두 번 베어 금 고리를 퍼뜨리고, 보라 빛을 모아 길게 찌른 뒤 큰 금 고리로 터뜨린다',pal:'gold',kind:'sphere',dur:150,lay:'ring'},
 {name:'취엽비',desc:'연두빛 회오리 고리 원반이 날아가고, 초록 가루를 끌며 돌진해 큰 초승달로 벤다',pal:'jade',kind:'hoops',dur:100},
 {name:'태극인',desc:'푸른 불꽃 기운 속에서 태극이 커지며 날아가고, 발밑의 누운 태극 둘레로 푸른 소용돌이가 돈다',pal:'yin',kind:'taiji',dur:140}];
 let cur=0,tier=2,glowOn=true,auto=true,autoT=0,idc=1;
-function cast(i){cur=i;const s=SKILLS[i];if((s.lay==='ring')!==ringLay)layout(s.lay==='ring');hero.sa=undefined;hero.jy=0;hero.ox=0;hero.pal=null;fx=[];for(const m of mobs){m.stun=m.splash=m.burn=m.shield=m.ghost=0;m.glyph=m.sig=0}fx.push({...s,t:0,tier,id:idc++,pi:PI[s.pal],seed:Math.random()*99});hero.lean=8;
+function cast(i){cur=i;const s=SKILLS[i];if((s.lay==='ring')!==ringLay)layout(s.lay==='ring');hero.sa=undefined;hero.jy=0;hero.ox=0;hero.pal=null;fx=[];VFX.clear();for(const m of mobs){m.stun=m.splash=m.burn=m.shield=m.ghost=0;m.glyph=m.sig=0}fx.push({...s,t:0,tier,id:idc++,pi:PI[s.pal],seed:Math.random()*99});hero.lean=8;
  document.getElementById('capName').textContent=s.name+' · '+tier+'단계';document.getElementById('capDesc').textContent=s.desc;
  document.querySelectorAll('#skills button').forEach((b,k)=>b.setAttribute('aria-pressed',k===i));}
 function runFx(e){const r=CUSTOM[e.kind](e);e.t++;return r!==false&&e.t<e.dur}
 // ── 한 번 움직이기(1초에 60번) ──
-function tick(){frame++;OF.fill(0);OV.fill(0);OG.fill(0);
+function tick(){frame++;VFX.tick();OF.fill(0);OV.fill(0);OG.fill(0);
  for(let L=0;L<2;L++){const f=FI[L];for(let i=0;i<N;i++)if(f[i]>0){f[i]*=L?.72:.8;if(f[i]<.05)f[i]=0}}
  for(let i=0;i<N;i++){if(HS[i]>0){HS[i]*=.9;if(HS[i]<.05)HS[i]=0}}
  for(const m of mobs){m.vx+=(m.hx-m.x)*.01;m.vy+=(m.hy-m.y)*.01;m.x+=m.vx;m.y+=m.vy;m.vx*=.86;m.vy*=.86;if(m.flash)m.flash--;else if(m.ghost)m.ghost--;m.y=clamp(m.y,ringLay?40:60,262);if(m.stun)m.stun--;if(m.splash)m.splash--;if(!ringLay&&m.x<hero.x+18){m.x=hero.x+18;m.vx=Math.abs(m.vx)}
@@ -147,9 +148,10 @@ function render(){
  let ox=0,oy=0;if(shake>0){ox=Math.round((Math.random()-.5)*shake)*S;oy=Math.round((Math.random()-.5)*shake)*S;shake*=.86;if(shake<.3)shake=0}
  dc.globalCompositeOperation='source-over';dc.filter='none';dc.globalAlpha=1;dc.imageSmoothingEnabled=false;dc.drawImage(base,ox,oy,W*S,H*S);
  if(glowOn){dc.globalCompositeOperation='lighter';
-  dc.imageSmoothingEnabled=true;dc.filter='blur('+(S*5)+'px)';dc.drawImage(glowC,ox,oy,W*S,H*S);dc.filter='blur('+(S*2)+'px)';dc.globalAlpha=.9;dc.drawImage(glowC,ox,oy,W*S,H*S);dc.globalAlpha=1;dc.filter='none';dc.globalCompositeOperation='source-over'}}
+  dc.imageSmoothingEnabled=true;dc.filter='blur('+(S*5)+'px)';dc.drawImage(glowC,ox,oy,W*S,H*S);dc.filter='blur('+(S*2)+'px)';dc.globalAlpha=.9;dc.drawImage(glowC,ox,oy,W*S,H*S);dc.globalAlpha=1;dc.filter='none';dc.globalCompositeOperation='source-over'}
+ VFX.render(glowOn,ox,oy)}
 let S=3;
-function fit(){const st=document.getElementById('stage');S=Math.max(1,Math.floor(Math.min(st.clientWidth/W,(innerHeight-140)/H)));if(S<2&&st.clientWidth>=W*2)S=2;cv.width=W*S;cv.height=H*S;cv.style.width=W*S+'px';cv.style.height=H*S+'px'}
+function fit(){const st=document.getElementById('stage');S=Math.max(1,Math.floor(Math.min(st.clientWidth/W,(innerHeight-140)/H)));if(S<2&&st.clientWidth>=W*2)S=2;cv.width=W*S;cv.height=H*S;cv.style.width=W*S+'px';cv.style.height=H*S+'px';VFX.fit(cv,S)}
 addEventListener('resize',fit);
 let acc=0,last=0;function step(now){if(!last)last=now;acc+=Math.min(100,now-last);last=now;let ran=false;while(acc>=1000/60){tick();acc-=1000/60;ran=true}if(ran)render();requestAnimationFrame(step)}
 // ── 버튼 ──
@@ -159,5 +161,5 @@ const gb=document.getElementById('glowBtn');gb.onclick=()=>{glowOn=!glowOn;gb.se
 const ab=document.getElementById('autoBtn');function syncAuto(){ab.setAttribute('aria-pressed',auto);ab.textContent=auto?'자동 재생 켜짐':'자동 재생 꺼짐'}ab.onclick=()=>{auto=!auto;syncAuto();autoT=0};
 // 시험용: 자동 재생을 끄고 i번 스킬을 t단계로 쓴다
 window.__show=(i,t)=>{auto=false;syncAuto();tier=t;fx=[];cast(i)};
-fit();cast(0);autoT=SKILLS[0].dur+30;requestAnimationFrame(step);
+VFX.init(cv);fit();cast(0);autoT=SKILLS[0].dur+30;requestAnimationFrame(step);
 </script><script src="wave.js"></script><script src="fire.js"></script><script src="crimson.js"></script><script src="sphere.js"></script><script src="hoops.js"></script><script src="taiji.js"></script></body></html>
