@@ -83,14 +83,14 @@ function wavePhase(e,t,kk){
  if(v>=10&&v<=50){const p=(v-10)/40;hero.jy=-Math.sin(p*Math.PI)*26;hero.lean=2}else hero.jy=0;
  if(v>=22&&v<32){const hx=hero.x+6,hy=hero.y+hero.jy-18,p=(v-22)/10;for(let a=-1.4;a<1.3;a+=.025){const r=20+Math.sin(a)*2,f=(a+1.4)/2.7;if(f>p+.15||f<p-.55)continue;const w=1+(1-Math.abs(a)/1.4)*3;for(let o=0;o<w;o++)pv(hx+Math.cos(a)*(r-o),hy+Math.sin(a)*(r-o),o<1?PALE:FOAM,true)}}
  if(v===16||v===40){e.id=idc++;const hit=m=>Math.hypot(m.x-dcx,(m.y-dcy)/dsy)<DR*1.05;for(const m of mobs)if(hit(m)){m.stun=70;m.splash=20}hitArea(e.id,hit,120*e.tier,1.6,hcx,dcy,{pi:2});shake=e.tier>=3?5:3}
- if(v===76){e.puX=bx+L*.5;e.puY=by-2;e.puR=L*.5}
+ if(v===76){e.puX=hero.x+10;e.puY=hero.y+1;e.puR=L*.95}
 }
 
 // 3) 남는 물웅덩이(점점 마른다)
-function puddle(e,t){if(!e.puX)return;const a=clamp(1-(t-98)/60,0,1);if(a<=0)return;const R=e.puR,sy=.16;
- for(let y=e.puY-R*sy|0;y<=e.puY+R*sy;y++)for(let x=e.puX-R|0;x<=e.puX+R;x++){const nx=(x-e.puX)/R,ny=(y-e.puY)/(R*sy),rr=Math.hypot(nx,ny)+.15*(vn(nx*4+e.seed,ny*3)-.5);
-  if(rr>a)continue;const rip=frac(rr*3.5-t*.04);
-  if(rr>a-.06)pb(x,y,LITE);else if(rip<.12)pb(x,y,MID);else if((x+y)&1)pb(x,y,rr<.4?BLUE:NAVY)}}
+// 레퍼런스 마지막 장면: 주인공 발밑에 길고 납작한 물웅덩이(밝은 하늘색, 짙은 파란 테)
+function puddle(e,t){if(!e.puX)return;const a=clamp(1-(t-110)/50,0,1),g=ease(clamp((t-96)/12,0,1));if(a<=0||g<=0)return;const R=e.puR*g,sy=.07;
+ for(let y=e.puY-R*sy-1|0;y<=e.puY+R*sy+1;y++)for(let x=e.puX-R|0;x<=e.puX+R;x++){const nx=(x-e.puX)/R,ny=(y-e.puY)/(R*sy),rr=Math.hypot(nx,ny);
+  if(rr>1||hash(x,y,5)>a*1.3)continue;pb(x,y,rr>.88?BLUE:ny<-.3&&hash(x,y,t>>3)<.3?PALE:rr>.7?MID:LITE,rr<.7)}}
 
 CUSTOM.wave=e=>{const t=e.t,kk=.85+.15*e.tier;ringPhase(e,t,kk);wavePhase(e,t,kk);puddle(e,t);if(t===e.dur-1)hero.jy=0};
 })();

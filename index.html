@@ -80,7 +80,9 @@ const SPR={hero:['......oooo......','.....ohhhho.....','....ohhHHhho....','...oh
 const SC0={o:'#140c10',h:'#2a1c22',H:'#4c3640',s:'#e8b58c',S:'#b07a58',e:'#140c10',r:'#2c3a5c',L:'#46598a',R:'#1c2640',b:'#d8b04a',p:'#26222e',k:'#1a1418'};
 const MOBC=[{h:'#1c1416',H:'#b8322a',r:'#5a4636',L:'#77604a',R:'#3c2e24',b:'#2a1f18',p:'#2e2826'},{h:'#e2ad84',H:'#e2ad84',r:'#b8862e',L:'#d8a446',R:'#8a6020',b:'#6a3a18',p:'#4a3420'},{h:'#3a2a20',H:'#3a2a20',r:'#6a2a2a',L:'#8c3a36',R:'#4a1c1c',b:'#c9a24a',p:'#2a2224'}];
 const SC=Object.assign({},SC0);
-for(const k in SC)SC[k]=hex(SC[k]);const MOBP=MOBC.map(m=>{const o={};for(const k in SC0)o[k]=hex(m[k]||SC0[k]);return o});
+for(const k in SC)SC[k]=hex(SC[k]);const tint=(h,k)=>{const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return hex('#'+[r+(255-r)*k*.9|0,g+(150-g)*k|0,b*(1-k)|0].map(q=>q.toString(16).padStart(2,'0')).join(''))};
+const MOBB=MOBC.map(m=>{const o={};for(const k in SC0)o[k]=tint(m[k]||SC0[k],.45);return o});
+const MOBP=MOBC.map(m=>{const o={};for(const k in SC0)o[k]=hex(m[k]||SC0[k]);return o});
 function sprite(s,x,y,flash,flip,pal){const w=s[0].length,hh=s.length;pal=pal||SC;for(let r=0;r<hh;r++)for(let c=0;c<w;c++){const ch=s[r][flip?w-1-c:c];if(ch!=='.')put(x-(w>>1)+c,y-hh+1+r,flash?(ch==='o'?FLO:WHITE):pal[ch],false)}}
 function sword(x,y,flip){const d=flip?-1:1;for(let i=0;i<12;i++){put(x+d*(5+i),y-15-(i>>1),i<2?hex('#d8b04a'):hex('#dfe6f0'));put(x+d*(5+i),y-14-(i>>1),i<2?hex('#140c10'):hex('#8a96aa'))}}
 function shadow(x,y){for(let dx=-8;dx<=8;dx++)for(let dy=-2;dy<=2;dy++)if(dx*dx/64+dy*dy/5<1)put(x+dx,y+dy,SHD)}
@@ -94,7 +96,7 @@ function spark(x,y,vx,vy,life,pi,o){parts.push(Object.assign({x,y,vx,vy,life,max
 function light(x,y,r,pi,a){lights.push({x,y,r,pi,a})}
 // ── 스킬 8개 ──
 const SKILLS=[
-{name:'화룡장',desc:'불꽃 용이 몸을 감고 돌다가, 땅을 따라 불길이 휩쓸고 나간다',pal:'fire',kind:'dragon',dur:130},
+{name:'화룡장',desc:'불꽃 용이 몸을 감고 돌다가, 땅을 따라 불길이 휩쓸고 나간다',pal:'fire',kind:'dragon',dur:150},
 {name:'홍련검',desc:'붉은 창끝 찌르기가 뻗고, 맞은 자리에 붉은 연꽃 소용돌이가 터진다',pal:'crimson',kind:'lotus',dur:84},
 {name:'단해',desc:'큰 파도가 말려 올라 앞을 덮치고, 땅에 물웅덩이가 남는다',pal:'ocean',kind:'wave',dur:170},
 {name:'금륜진',desc:'금빛 고리 여러 개가 공처럼 몸을 감싸고 돌며 여러 번 때린다',pal:'gold',kind:'sphere',dur:150},
@@ -108,20 +110,6 @@ function cast(i){cur=i;const s=SKILLS[i];fx.push({...s,t:0,tier,id:idc++,pi:PI[s
  document.querySelectorAll('#skills button').forEach((b,k)=>b.setAttribute('aria-pressed',k===i));}
 function runFx(e){if(CUSTOM[e.kind]){const r=CUSTOM[e.kind](e);e.t++;return r!==false&&e.t<e.dur}const T=e.tier,t=e.t,u=t/e.dur,k=1+(T-1)*.2,f=frame,pi=e.pi,hx=hero.x,hy=hero.y;
  switch(e.kind){
- case'dragon':{ // 1) 불꽃 용이 몸을 감아 돈다 2) 땅을 휩쓰는 불길
-  if(t<56){const segs=14+T*2,grow=Math.min(1,t/14);for(let j=0;j<segs;j++){const a=t*.2-j*.3,rr=(22+j*.9)*k*grow,x=hx+Math.cos(a)*rr,y=hy-8+Math.sin(a)*rr*.5,sz=(j===0?8:6.5-j*.25)*k;
-    if(sz<1.5)continue;field(x,y,sz+2,1,pi,1,(d,an,dx,dy,X,Y)=>{const e2=sz*(.65+.6*fbm(X*.25+f*.1,Y*.25-f*.15));return d<e2?(1.3-d/e2*.8)*(j===0?1.25:1-j/segs*.4):0});
-    if(j%3===0&&Math.random()<.5)spark(x,y,(Math.random()-.5)*.6,-.4-Math.random()*.6,18+Math.random()*12,pi,{size:Math.random()<.4?2:1});}
-   for(let c=0;c<4+T;c++)flame(hx+(c-(3+T)/2)*3,hy+1,(16+T*4)*grow*(.6+.5*hash(c,f>>2,5)),2.4,.78,1);
-   light(hx,hy-10,60*k,pi,.55*grow);heat(hx,hy,1)}
-  if(t===50){shake=T>=3?6:3;for(let r=0;r<10+T*4;r++)e['r'+r]=Math.random()*TAU}
-  if(t>=50&&t<60)for(let r=0;r<10+T*4;r++)ray(hx+12,hy-6,e['r'+r],(40+hash(r,7,1)*40)*k*(1-(t-50)/10),2.4,1.2,pi,1,.55);
-  if(t>=50){const run=Math.min(1,(t-50)/38),x0=hx+14,front=x0+(300*k)*ease(run),half=(18+T*4);
-   if(!e.em){e.em=[];const M=70+T*30;for(let q=0;q<M;q++){const r=Math.random();e.em.push({x:x0+Math.pow(r,.9)*300*k,y:hy+(Math.random()-.5)*2*half*(.95-.35*r),h:(16+T*5)*(.5+Math.random()*.8),w:2+Math.random()*1.8,s:Math.random()*50,pass:-1})}}
-   for(let y=hy-half|0;y<=hy+half;y++){const dy=Math.abs(y-hy);for(let x=x0|0;x<front;x++){const lim=half*(.62+.4*fbm(x*.04,y*.02+e.seed));if(dy>lim)continue;const age=(t-50)-((x-x0)/(300*k))*38,life=clamp(1-age/70,0,1);if(life<=0)continue;{const fb=fbm(x*.09-f*.05,y*.2);if(fb>.42)add(x,y,(fb-.3)*.9*life*(1-dy/lim*.6),pi,0)}if(age<1.5){const dn=fbm(x*.08,y*.12);if(dn>.45)decal(x,y,dn,0)}heat(x,y-6,life*.8)}}
-   for(const q of e.em){if(q.x>front)continue;if(q.pass<0)q.pass=t;const age=t-q.pass,life=clamp(1-age/(55+q.s*.4),0,1);if(life<=0)continue;const lead=Math.max(0,1-(front-q.x)/25);const h=q.h*(life*.85+lead*.6)*(.7+.5*fbm(q.s,f*.13));if(h>2)flame(q.x,q.y,h,q.w,.72*life+.22+lead*.3,1);if(Math.random()<.02*life)spark(q.x,q.y-h,(Math.random()-.5)*.3,-.7,26,pi,{size:Math.random()<.5?2:1})}
-   light((x0+front)/2,hy,(front-x0)/2+40,pi,.45*(1-u*.6));
-   hitArea(e.id,m=>m.x>x0&&m.x<front&&Math.abs(m.y-hy)<half,140*T,1.2,front-30,hy,{burn:1,pi:3})}break}
  case'lotus':{const px=hx+170*k,py=hy-6;
   if(t<18){const L=Math.min(1,t/6)*(px-hx-10),x0=hx+10,y0=hy-8;for(let s=0;s<L;s+=.5){const r=s/L,th=(r>.9?(1-r)*10:1)*(2.2+T*.4);for(let o=-th;o<=th;o+=.5){const jag=(hash(s|0,o*2|0,f)-.5)*.3;add(x0+s,y0+o*.7,(1.35-Math.abs(o)/th*.9+jag)*(1-t/22),pi,1)}}
    for(let i=0;i<3+T;i++)spark(x0+Math.random()*L,y0+(Math.random()-.5)*5,(Math.random()-.3)*2,(Math.random()-.5)*1.6,14+Math.random()*10,pi);
@@ -175,7 +163,7 @@ function tick(){frame++;lights=[];OF.fill(0);OV.fill(0);OG.fill(0);
  for(let L=0;L<2;L++){const f=FI[L];for(let i=0;i<N;i++)if(f[i]>0){f[i]*=L?.72:.8;if(f[i]<.05)f[i]=0}}
  for(let i=0;i<N;i++){if(DI[i]>0){DI[i]*=.975;if(DI[i]<.05)DI[i]=0}if(HS[i]>0){HS[i]*=.9;if(HS[i]<.05)HS[i]=0}}
  for(const m of mobs){m.vx+=(m.hx-m.x)*.01;m.vy+=(m.hy-m.y)*.01;m.x+=m.vx;m.y+=m.vy;m.vx*=.86;m.vy*=.86;if(m.flash)m.flash--;m.y=clamp(m.y,60,262);if(m.stun)m.stun--;if(m.splash)m.splash--;if(m.x<hero.x+18){m.x=hero.x+18;m.vx=Math.abs(m.vx)}
-  if(m.burn>0){m.burn--;if(m.burn%2===0)for(let c=0;c<2;c++)flame(m.x-3+c*6,m.y-4,8,1.6,1,1);if(m.burn%30===0)nums.push({x:m.x-4,y:m.y-24,v:12+(Math.random()*8|0),life:30,crit:false})}}
+  if(m.burn>0){m.burn--;if(m.burn%2===0)for(let c=0;c<3;c++)flame(m.x-6+c*6,m.y-4-(c&1)*6,12,2,.62,1);if(m.burn%30===0)nums.push({x:m.x-4,y:m.y-36,v:12+(Math.random()*8|0),life:30,crit:false})}}
  if(hero.lean>0)hero.lean--;if(hero.aura>0){hero.aura--;for(let c=0;c<3;c++)flame(hero.x-4+c*4,hero.y,14,2,1,1)}
  fx=fx.filter(runFx);
  for(let i=parts.length-1;i>=0;i--){const q=parts[i];q.x+=q.vx;q.y+=q.vy;q.vy+=q.grav;q.vx*=q.drag;q.vy*=q.drag;q.life--;const l=q.life/q.max;
@@ -190,7 +178,7 @@ function render(){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;let sx=x;if(HS[i]>0)sx=clamp(x+Math.round(Math.sin(y*.7+frame*.45)*HS[i]*1.6),0,W-1);let c=ground[y*W+sx];const d=DI[i];if(d>.35)c=DECAL[DP[i]];B[i]=c}
  G.fill(0);shadeLayer(0);for(let i=0;i<N;i++){if(OF[i])B[i]=OF[i];if(OG[i])G[i]=OG[i]}
  const ents=[...mobs.map(m=>({y:m.y,m})),{y:hero.y,h:1}].sort((a,b)=>a.y-b.y);
- for(const o of ents){if(o.h){shadow(hero.x,hero.y);const hx2=hero.x+(hero.lean>0?2:0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false);sword(hx2,hy2,false)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0,true,MOBP[m.pal]);if(!m.flash)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
+ for(const o of ents){if(o.h){shadow(hero.x,hero.y);const hx2=hero.x+(hero.lean>0?2:0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false);sword(hx2,hy2,false)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0&&!m.burn,true,(m.burn>0?MOBB:MOBP)[m.pal]);if(!m.flash)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
  for(let i=0;i<N;i++)if(OV[i])B[i]=OV[i];
  shadeLayer(1);
  for(let i=nums.length-1;i>=0;i--){const n=nums[i];n.y-=.3;n.life--;digits(n.v,n.x|0,n.y|0,n.crit?YEL:WHITE);if(n.life<=0)nums.splice(i,1)}
@@ -212,4 +200,4 @@ const ab=document.getElementById('autoBtn');function syncAuto(){ab.setAttribute(
 // 시험용: 자동 재생을 끄고 i번 스킬을 t단계로 쓴다
 window.__show=(i,t)=>{auto=false;syncAuto();tier=t;fx=[];cast(i)};
 fit();cast(0);autoT=SKILLS[0].dur+30;requestAnimationFrame(step);
-</script><script src="wave.js"></script></body></html>
+</script><script src="wave.js"></script><script src="fire.js"></script></body></html>
