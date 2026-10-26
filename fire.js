@@ -2,10 +2,7 @@
 // 화룡장: 1) 몸을 도는 주황 기운 고리 2) 큰 불꽃 폭발 원판 + 불덩이 둘 3) 불기둥을 감고 오르는 용 + 둘레 불꽃 고리 4) 용이 뻗어 나가 땅에 긴 불길 깔기
 (function(){
 const c=hex,DK=c('#4a1204'),RED=c('#b8300a'),ORG=c('#ee6a12'),AMB=c('#ffa324'),YEL=c('#ffd75a'),PY=c('#fff1a8'),WH=c('#fffbe8');
-function pb(x,y,col,g){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;OF[i]=col;if(g)OG[i]=col}
-function pv(x,y,col,g){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;OV[i]=col;if(g)OG[i]=col}
-function pa(x,y,col,a){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x,b=OF[i]||ground[i],k=a*256|0,m=256-k;OF[i]=(255<<24|((((b>>16&255)*m+(col>>16&255)*k)>>8)<<16)|((((b>>8&255)*m+(col>>8&255)*k)>>8)<<8)|(((b&255)*m+(col&255)*k)>>8))>>>0}
-const frac=v=>v-Math.floor(v),RAMP=[RED,ORG,AMB,YEL,PY,WH];
+const RAMP=[RED,ORG,AMB,YEL,PY,WH];
 const ramp=v=>RAMP[clamp(v*6|0,0,5)];
 
 // 불꽃 혀 하나(아래가 넓고 위가 뾰족, 가운데가 하얗게 밝음)

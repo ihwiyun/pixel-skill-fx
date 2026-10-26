@@ -58,6 +58,11 @@ function add(x,y,v,pi,L){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H||v<=0)return;const i=
 function setp(x,y,v,pi,L){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;FI[L||0][i]=v;FP[L||0][i]=pi}
 function decal(x,y,v,pi){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;if(v>DI[i]){DI[i]=v;DP[i]=pi}}
 function heat(x,y,v){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;if(v>HS[i])HS[i]=v}
+// 손으로 그리는 이펙트용: pb=캐릭터 뒤(바닥), pv=캐릭터 앞, pa=뒤에 반투명으로 섞기
+function pb(x,y,col,g){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;OF[i]=col;if(g)OG[i]=col}
+function pv(x,y,col,g){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;OV[i]=col;if(g)OG[i]=col}
+function pa(x,y,col,a){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x,b=OF[i]||ground[i],k=a*256|0,m=256-k;OF[i]=(255<<24|((((b>>16&255)*m+(col>>16&255)*k)>>8)<<16)|((((b>>8&255)*m+(col>>8&255)*k)>>8)<<8)|(((b&255)*m+(col&255)*k)>>8))>>>0}
+const frac=v=>v-Math.floor(v);
 function put(x,y,c,glow){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;B[i]=c;if(glow)G[i]=c}
 // 원·타원 범위를 돌며 세기를 매긴다(sy: 위에서 비스듬히 본 납작함)
 function field(cx,cy,R,sy,pi,L,fn){const x0=Math.max(0,cx-R|0),x1=Math.min(W-1,cx+R|0),y0=Math.max(0,cy-R*sy|0),y1=Math.min(H-1,cy+R*sy|0);
@@ -97,7 +102,7 @@ function light(x,y,r,pi,a){lights.push({x,y,r,pi,a})}
 // ── 스킬 8개 ──
 const SKILLS=[
 {name:'화룡장',desc:'불꽃 용이 몸을 감고 돌다가, 땅을 따라 불길이 휩쓸고 나간다',pal:'fire',kind:'dragon',dur:150},
-{name:'홍련검',desc:'붉은 창끝 찌르기가 뻗고, 맞은 자리에 붉은 연꽃 소용돌이가 터진다',pal:'crimson',kind:'lotus',dur:84},
+{name:'홍련검',desc:'그림자 모습으로 분홍 초승달 베기, 긴 찌르기, 분홍 소용돌이 폭발. 맞은 적은 방패가 깨진다',pal:'crimson',kind:'lotus',dur:100},
 {name:'단해',desc:'큰 파도가 말려 올라 앞을 덮치고, 땅에 물웅덩이가 남는다',pal:'ocean',kind:'wave',dur:170},
 {name:'금륜진',desc:'금빛 고리 여러 개가 공처럼 몸을 감싸고 돌며 여러 번 때린다',pal:'gold',kind:'sphere',dur:150},
 {name:'자월참',desc:'보랏빛 회전 베기 뒤에 보랏빛 소용돌이가 날아간다',pal:'void',kind:'vortex',dur:90},
@@ -110,16 +115,6 @@ function cast(i){cur=i;const s=SKILLS[i];fx.push({...s,t:0,tier,id:idc++,pi:PI[s
  document.querySelectorAll('#skills button').forEach((b,k)=>b.setAttribute('aria-pressed',k===i));}
 function runFx(e){if(CUSTOM[e.kind]){const r=CUSTOM[e.kind](e);e.t++;return r!==false&&e.t<e.dur}const T=e.tier,t=e.t,u=t/e.dur,k=1+(T-1)*.2,f=frame,pi=e.pi,hx=hero.x,hy=hero.y;
  switch(e.kind){
- case'lotus':{const px=hx+170*k,py=hy-6;
-  if(t<18){const L=Math.min(1,t/6)*(px-hx-10),x0=hx+10,y0=hy-8;for(let s=0;s<L;s+=.5){const r=s/L,th=(r>.9?(1-r)*10:1)*(2.2+T*.4);for(let o=-th;o<=th;o+=.5){const jag=(hash(s|0,o*2|0,f)-.5)*.3;add(x0+s,y0+o*.7,(1.35-Math.abs(o)/th*.9+jag)*(1-t/22),pi,1)}}
-   for(let i=0;i<3+T;i++)spark(x0+Math.random()*L,y0+(Math.random()-.5)*5,(Math.random()-.3)*2,(Math.random()-.5)*1.6,14+Math.random()*10,pi);
-   if(t%3===0)spark(x0+Math.random()*L*.5,y0+(Math.random()-.5)*6,-.25,-.12,46,8,{size:2.5,puff:1,drag:.96});light(x0+L/2,y0,L/2+30,pi,.5);
-   hitArea(e.id,m=>m.x>x0&&m.x<x0+L&&Math.abs(m.y-y0-6)<10,90*T,2,x0,y0)}
-  if(t>=12){const v=t-12,dur=e.dur-12,uu=v/dur,R=(30+T*6)*ease(Math.min(1,v/14)),fade=uu>.7?(1-uu)/.3:1,rot=f*.12;
-   field(px,py,R*1.25+4,.72,pi,1,(d,a,dx,dy,X,Y)=>{const rim=R*(.92+.18*fbm(Math.cos(a)*2+f*.05,Math.sin(a)*2));if(d>rim+3)return 0;const sw=.5+.5*Math.sin(a*3+d*.28-rot*3);let val=d<rim?.35+.45*sw*(d/rim)+(d<R*.25?.5:0):0;val=Math.max(val,Math.exp(-Math.pow((d-rim)/1.6,2))*1.35);for(let q=1;q<=2;q++)val=Math.max(val,Math.exp(-Math.pow((d-R*q*.33-(v%10))/1.1,2))*.85);return val*fade});
-   for(let q=0;q<8;q++){const a=q/8*TAU+v*.03,pr=R*(.95+uu*.6),cx=px+Math.cos(a)*pr,cy=py+Math.sin(a)*pr*.72;field(cx,cy,7*k,.72,pi,1,(d,an)=>{const along=Math.cos(an-a);return d<6*k*(.55+.45*Math.abs(along))?(1.1-d/(6*k))*fade*1.1:0})}
-   light(px,py,R*1.8,pi,.6*fade);if(v===2){shake=T>=3?6:3;for(let i=0;i<30+T*10;i++){const a=Math.random()*TAU,s=1+Math.random()*2.5;spark(px,py,Math.cos(a)*s,Math.sin(a)*s*.7,20+Math.random()*16,pi,{size:Math.random()<.3?2:1})}}
-   if(v%14===2){e.id=idc++;hitArea(e.id,m=>Math.hypot(m.x-px,(m.y-py)/.72)<R*1.1,70*T,-.8,px,py)}}break}
  case'sphere':{const cx=hx,cy=hy-16,Rs=(42+T*7)*ease(Math.min(1,t/16)),fade=u>.85?(1-u)/.15:1,n=3+T,rot=f*.04;
   field(cx,hy+2,Rs*1.05,.35,pi,0,(d,a)=>{const r1=Math.exp(-Math.pow((d-Rs)/1.2,2)),r2=Math.exp(-Math.pow((d-Rs*.75)/1,2))*.8,glyph=d>Rs*.8&&d<Rs*.95&&hash((a*12+f*.02)|0,(d/3)|0,9)>.55?.8:0;return Math.max(r1,r2,glyph)*fade});
   for(let j=0;j<n;j++){const tilt=j/n*Math.PI+.3,ux=Math.cos(tilt),uz=Math.sin(tilt),st=.7/Rs;for(let a=0;a<TAU;a+=st){let X=Math.cos(a)*Rs*ux,Y=Math.sin(a)*Rs,Z=Math.cos(a)*Rs*uz;const yr=rot*(j%2?1:-1.3),X2=X*Math.cos(yr)-Z*Math.sin(yr),Z2=X*Math.sin(yr)+Z*Math.cos(yr);const sx=cx+X2,sy=cy-Y*.85+Z2*.25,front=Z2>0;add(sx,sy,(front?1.3:.75)*fade,pi,front?1:0);if(front)add(sx+1,sy,1*fade,pi,1)}}
@@ -178,7 +173,7 @@ function render(){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;let sx=x;if(HS[i]>0)sx=clamp(x+Math.round(Math.sin(y*.7+frame*.45)*HS[i]*1.6),0,W-1);let c=ground[y*W+sx];const d=DI[i];if(d>.35)c=DECAL[DP[i]];B[i]=c}
  G.fill(0);shadeLayer(0);for(let i=0;i<N;i++){if(OF[i])B[i]=OF[i];if(OG[i])G[i]=OG[i]}
  const ents=[...mobs.map(m=>({y:m.y,m})),{y:hero.y,h:1}].sort((a,b)=>a.y-b.y);
- for(const o of ents){if(o.h){shadow(hero.x,hero.y);const hx2=hero.x+(hero.lean>0?2:0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false);sword(hx2,hy2,false)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0&&!m.burn,true,(m.burn>0?MOBB:MOBP)[m.pal]);if(!m.flash)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
+ for(const o of ents){if(o.h){shadow(hero.x,hero.y);const hx2=hero.x+(hero.lean>0?2:0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false,hero.pal);if(!hero.pal)sword(hx2,hy2,false)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0&&!m.burn,true,(m.burn>0?MOBB:MOBP)[m.pal]);if(!m.flash)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
  for(let i=0;i<N;i++)if(OV[i])B[i]=OV[i];
  shadeLayer(1);
  for(let i=nums.length-1;i>=0;i--){const n=nums[i];n.y-=.3;n.life--;digits(n.v,n.x|0,n.y|0,n.crit?YEL:WHITE);if(n.life<=0)nums.splice(i,1)}
@@ -200,4 +195,4 @@ const ab=document.getElementById('autoBtn');function syncAuto(){ab.setAttribute(
 // 시험용: 자동 재생을 끄고 i번 스킬을 t단계로 쓴다
 window.__show=(i,t)=>{auto=false;syncAuto();tier=t;fx=[];cast(i)};
 fit();cast(0);autoT=SKILLS[0].dur+30;requestAnimationFrame(step);
-</script><script src="wave.js"></script><script src="fire.js"></script></body></html>
+</script><script src="wave.js"></script><script src="fire.js"></script><script src="crimson.js"></script></body></html>

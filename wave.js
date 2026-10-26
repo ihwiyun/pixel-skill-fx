@@ -2,9 +2,6 @@
 // 단해: 1) 주인공을 감싸는 물기둥 고리 2) 뒤에서 솟아 앞으로 말려 덮치는 큰 파도 + 앞 바닥 빛 원판 3) 무너져 물웅덩이
 (function(){
 const c=hex,NAVY0=c('#06123a'),NAVY=c('#0b2a72'),BLUE=c('#1650b4'),MID=c('#2a78d8'),LITE=c('#69b8f4'),PALE=c('#bfe9ff'),FOAM=c('#f4fcff'),OUT=c('#040b26');
-function pb(x,y,col,g){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;OF[i]=col;if(g)OG[i]=col}
-function pv(x,y,col,g){x|=0;y|=0;if(x<0||y<0||x>=W||y>=H)return;const i=y*W+x;OV[i]=col;if(g)OG[i]=col}
-const frac=v=>v-Math.floor(v);
 
 // 1) 물 사발: 주인공이 허리까지 잠긴 물기둥. 위는 소용돌이 물면 + 두꺼운 흰 거품 테, 바닥엔 넓은 파란 소용돌이 고리
 function ringPhase(e,t,kk){
