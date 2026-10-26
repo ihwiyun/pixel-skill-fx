@@ -105,7 +105,7 @@ CUSTOM.sphere=e=>{const t=e.t,kk=Z*(.8+.05*e.tier),q=v=>v*kk,hx=hero.x,hy=hero.y
  // #92 찌르기 별빛(가로 빛 120, 세로 90), #94 하얀 빛
  if(t>=242&&t<254){const a=1-(t-242)/12;star4(hx+q(30),hy-q(2),q(70)*a+5,q(70)*a+4,1)}
  if(t>=248&&t<258){const a=1-(t-248)/10,rx=q(32),ry=q(22);for(let y=-ry;y<=ry;y++)for(let x=-rx;x<=rx;x++){const d=Math.hypot(x/rx,y/ry);if(d<1)pa(hx+x,hy-q(16)+y,WH,(1-d*d)*a)}star4(hx+q(34),hy-q(6),q(30)*a+3,q(40)*a+3,1)}
- if(t===249)for(const m of M){hit(m,6,5);m.gm=10}
+ if(t===249)for(const m of M){hit(m,4,0);m.gm=8}
  // #96~#104 큰 금빛 땅 고리: 가로 150→220, 세로 95→ 화면 밖
  if(t>=252&&t<282){const v=t-252,rx=q(150+25*ease(Math.min(1,v/14))),ry=rx*.62,br=v<10?1:clamp(1-(v-10)/20,0,1);gring(hx,hy-q(20),rx,ry,v<6?6:v<12?3:2,br*(v<10?1:.75));
   if(v<14)for(let k=0;k<10;k++){const a2=k/10*TAU+.3;cres(hx+Math.cos(a2)*rx,hy-q(20)+Math.sin(a2)*ry,Math.cos(a2)<0,1-v/14)}}
