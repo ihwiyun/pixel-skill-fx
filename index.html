@@ -81,12 +81,20 @@ const SC=Object.assign({},SC0);
 for(const k in SC)SC[k]=hex(SC[k]);const tint=(h,k)=>{const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;return hex('#'+[r+(255-r)*k*.9|0,g+(150-g)*k|0,b*(1-k)|0].map(q=>q.toString(16).padStart(2,'0')).join(''))};
 const MOBB=MOBC.map(m=>{const o={};for(const k in SC0)o[k]=tint(m[k]||SC0[k],.45);return o});
 const MOBP=MOBC.map(m=>{const o={};for(const k in SC0)o[k]=hex(m[k]||SC0[k]);return o});
+// 하얗게 번쩍인 뒤 잠깐 비치는 반투명 모습(레퍼런스 금륜진): 원래 색을 흰색 쪽으로 60% 섞음
+const GHOST=MOBP.map(o=>{const g={};for(const k in o){const c=o[k],f=v=>v+((255-v)*.6|0);g[k]=(255<<24|f(c>>16&255)<<16|f(c>>8&255)<<8|f(c&255))>>>0}return g});
 function sprite(s,x,y,flash,flip,pal){const w=s[0].length,hh=s.length;pal=pal||SC;for(let r=0;r<hh;r++)for(let c=0;c<w;c++){const ch=s[r][flip?w-1-c:c];if(ch!=='.')put(x-(w>>1)+c,y-hh+1+r,flash?(ch==='o'?FLO:WHITE):pal[ch],false)}}
-function sword(x,y,flip){const d=flip?-1:1;for(let i=0;i<12;i++){put(x+d*(5+i),y-15-(i>>1),i<2?hex('#d8b04a'):hex('#dfe6f0'));put(x+d*(5+i),y-14-(i>>1),i<2?hex('#140c10'):hex('#8a96aa'))}}
+function sword(x,y,flip,a){const d=flip?-1:1;if(a===undefined){for(let i=0;i<12;i++){put(x+d*(5+i),y-15-(i>>1),i<2?hex('#d8b04a'):hex('#dfe6f0'));put(x+d*(5+i),y-14-(i>>1),i<2?hex('#140c10'):hex('#8a96aa'))}return}
+ // a: 칼 각도(0 = 앞으로 찌르기, 음수 = 치켜듦)
+ const c=Math.cos(a)*d,s=Math.sin(a);for(let i=0;i<13;i++){put(x+d*4+c*i,y-15+s*i,i<2?hex('#d8b04a'):hex('#dfe6f0'));put(x+d*4+c*i-s*d,y-15+s*i+Math.abs(c),i<2?hex('#140c10'):hex('#8a96aa'))}}
 function shadow(x,y){for(let dx=-8;dx<=8;dx++)for(let dy=-2;dy<=2;dy++)if(dx*dx/64+dy*dy/5<1)put(x+dx,y+dy,SHD)}
-const hero={x:168,y:176,lean:0,jy:0};
-const mobs=[];for(let i=0;i<12;i++){const x=222+(i%4)*56+(i>>2&1)*24+Math.random()*10,y=112+(i>>2)*58+Math.random()*10;mobs.push({x,y,hx:x,hy:y,vx:0,vy:0,flash:0,burn:0,stun:0,splash:0,pal:i%3,seed:Math.random()*99,hit:{}})}
-const nums=[],parts=[],marks=[];let fx=[],shake=0;
+const hero={x:168,y:176,lean:0,jy:0,sa:undefined};
+const mobs=[];for(let i=0;i<12;i++){const x=222+(i%4)*56+(i>>2&1)*24+Math.random()*10,y=112+(i>>2)*58+Math.random()*10;mobs.push({x,y,hx:x,hy:y,dx:x,dy:y,vx:0,vy:0,flash:0,burn:0,stun:0,splash:0,pal:i%3,seed:Math.random()*99,hit:{}})}
+const nums=[],parts=[],marks=[];let fx=[],shake=0,ringLay=false;
+// 배치: 기본은 주인공 왼쪽·적 오른쪽, 'ring'이면 주인공을 가운데 두고 적이 둘레를 둘러싼다(금륜진 레퍼런스 배치)
+// 레퍼런스 금륜진 첫 장(#11)에서 잰 적 발 위치(주인공 기준, 인물 크기 비율 0.56으로 줄임)
+const RINGPOS=[[-20,-44],[18,-45],[-40,-20],[48,-19],[-34,-7],[34,-7],[-44,17],[43,15],[-16,21],[16,21],[-22,43],[20,39]];
+function layout(ring){ringLay=ring;hero.x=ring?240:168;hero.y=ring?158:176;mobs.forEach((m,i)=>{if(ring){const p=RINGPOS[i];m.hx=hero.x+p[0];m.hy=hero.y+p[1]}else{m.hx=m.dx;m.hy=m.dy}m.x=m.hx;m.y=m.hy;m.vx=m.vy=0})}
 function hitArea(id,test,dmg,push,cx,cy,opt){for(const m of mobs){if(m.hit[id])continue;if(test(m)){m.hit[id]=1;m.flash=6;const a=Math.atan2(m.y-cy,m.x-cx);m.vx+=Math.cos(a)*push;m.vy+=Math.sin(a)*push*.6;{const crit=Math.random()<.22;if(crit||Math.random()<.35)nums.push({x:m.x-5,y:m.y-36,v:Math.round(dmg*(crit?1.8:1)*(.85+Math.random()*.3)),life:36,crit})}marks.push({x:m.x,y:m.y-14,life:10,pi:opt&&opt.pi!==undefined?opt.pi:3});if(opt&&opt.burn)m.burn=90}}}
 function stars(x,y){for(let k=0;k<3;k++){const a=frame*.12+k*TAU/3,sx=x+Math.cos(a)*9|0,sy=y+Math.sin(a)*3|0,c=hex('#ffe27a');put(sx,sy,c,true);put(sx+1,sy,c,true);put(sx-1,sy,c,true);put(sx,sy+1,c,true);put(sx,sy-1,c,true)}}
 function splash(x,y,n){const u=n/20,c1=hex('#f2fbff'),c2=hex('#69b8f4'),c3=hex('#1650b4');for(let k=0;k<20;k++){const a=k/20*Math.PI*1.4-.7+(1-u)*2,r=6+k*.25,px=x+Math.cos(a)*r*.55|0,py=y-14-k*.9+Math.sin(a)*2|0;if(hash(k,n,3)<u*1.2){put(px,py,k%3?c1:c2,true);put(px+1,py,c3)}}}
@@ -103,11 +111,11 @@ const SKILLS=[
 {name:'화룡장',desc:'불꽃 용이 몸을 감고 돌다가, 땅을 따라 불길이 휩쓸고 나간다',pal:'fire',kind:'dragon',dur:150},
 {name:'홍련검',desc:'그림자 모습으로 분홍 초승달 베기, 긴 찌르기, 분홍 소용돌이 폭발. 맞은 적은 방패가 깨진다',pal:'crimson',kind:'lotus',dur:100},
 {name:'단해',desc:'큰 파도가 말려 올라 앞을 덮치고, 땅에 물웅덩이가 남는다',pal:'ocean',kind:'wave',dur:170},
-{name:'금륜진',desc:'금빛 기둥과 반짝이, 적마다 감기는 보라·금 고리, 마지막에 큰 천구가 모두를 감싼다',pal:'gold',kind:'sphere',dur:150},
+{name:'금륜진',desc:'베기마다 금빛 고리가 퍼지고, 보라 초승달이 날아가 과녁을 찍고, 적마다 보라·금 고리가 감긴 뒤 활 같은 선이 모여 공이 되고 찌르기 별빛과 함께 터진다',pal:'gold',kind:'sphere',dur:288,lay:'ring'},
 {name:'취엽비',desc:'연두빛 회오리 고리 원반이 날아가고, 초록 가루를 끌며 돌진해 큰 초승달로 벤다',pal:'jade',kind:'hoops',dur:100},
 {name:'태극인',desc:'푸른 불꽃 기운 속에서 태극이 커지며 날아가고, 발밑의 누운 태극 둘레로 푸른 소용돌이가 돈다',pal:'yin',kind:'taiji',dur:140}];
 let cur=0,tier=2,glowOn=true,auto=true,autoT=0,idc=1;
-function cast(i){cur=i;const s=SKILLS[i];fx.push({...s,t:0,tier,id:idc++,pi:PI[s.pal],seed:Math.random()*99});hero.lean=8;
+function cast(i){cur=i;const s=SKILLS[i];if((s.lay==='ring')!==ringLay)layout(s.lay==='ring');hero.sa=undefined;hero.jy=0;hero.ox=0;hero.pal=null;fx=[];for(const m of mobs){m.stun=m.splash=m.burn=m.shield=m.ghost=0;m.glyph=m.sig=0}fx.push({...s,t:0,tier,id:idc++,pi:PI[s.pal],seed:Math.random()*99});hero.lean=8;
  document.getElementById('capName').textContent=s.name+' · '+tier+'단계';document.getElementById('capDesc').textContent=s.desc;
  document.querySelectorAll('#skills button').forEach((b,k)=>b.setAttribute('aria-pressed',k===i));}
 function runFx(e){const r=CUSTOM[e.kind](e);e.t++;return r!==false&&e.t<e.dur}
@@ -115,7 +123,7 @@ function runFx(e){const r=CUSTOM[e.kind](e);e.t++;return r!==false&&e.t<e.dur}
 function tick(){frame++;OF.fill(0);OV.fill(0);OG.fill(0);
  for(let L=0;L<2;L++){const f=FI[L];for(let i=0;i<N;i++)if(f[i]>0){f[i]*=L?.72:.8;if(f[i]<.05)f[i]=0}}
  for(let i=0;i<N;i++){if(HS[i]>0){HS[i]*=.9;if(HS[i]<.05)HS[i]=0}}
- for(const m of mobs){m.vx+=(m.hx-m.x)*.01;m.vy+=(m.hy-m.y)*.01;m.x+=m.vx;m.y+=m.vy;m.vx*=.86;m.vy*=.86;if(m.flash)m.flash--;m.y=clamp(m.y,60,262);if(m.stun)m.stun--;if(m.splash)m.splash--;if(m.x<hero.x+18){m.x=hero.x+18;m.vx=Math.abs(m.vx)}
+ for(const m of mobs){m.vx+=(m.hx-m.x)*.01;m.vy+=(m.hy-m.y)*.01;m.x+=m.vx;m.y+=m.vy;m.vx*=.86;m.vy*=.86;if(m.flash)m.flash--;else if(m.ghost)m.ghost--;m.y=clamp(m.y,ringLay?40:60,262);if(m.stun)m.stun--;if(m.splash)m.splash--;if(!ringLay&&m.x<hero.x+18){m.x=hero.x+18;m.vx=Math.abs(m.vx)}
   if(m.burn>0){m.burn--;if(m.burn%2===0)for(let c=0;c<3;c++)flame(m.x-6+c*6,m.y-4-(c&1)*6,12,2,.62,1);if(m.burn%30===0)nums.push({x:m.x-4,y:m.y-36,v:12+(Math.random()*8|0),life:30,crit:false})}}
  if(hero.lean>0)hero.lean--;
  fx=fx.filter(runFx);shields();
@@ -131,7 +139,7 @@ function render(){
  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=y*W+x;let sx=x;if(HS[i]>0)sx=clamp(x+Math.round(Math.sin(y*.7+frame*.45)*HS[i]*1.6),0,W-1);let c=ground[y*W+sx];B[i]=c}
  G.fill(0);shadeLayer(0);for(let i=0;i<N;i++){if(OF[i])B[i]=OF[i];if(OG[i])G[i]=OG[i]}
  const ents=[...mobs.map(m=>({y:m.y,m})),{y:hero.y,h:1}].sort((a,b)=>a.y-b.y);
- for(const o of ents){if(o.h){shadow(hero.x+Math.round(hero.ox||0),hero.y);const hx2=hero.x+(hero.lean>0?2:0)+Math.round(hero.ox||0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false,hero.pal);if(!hero.pal)sword(hx2,hy2,false)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0&&!m.burn,true,(m.burn>0?MOBB:MOBP)[m.pal]);if(!m.flash)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
+ for(const o of ents){if(o.h){shadow(hero.x+Math.round(hero.ox||0),hero.y);const hx2=hero.x+(hero.lean>0?2:0)+Math.round(hero.ox||0),hy2=hero.y+Math.round(hero.jy);sprite(SPR.hero,hx2,hy2,0,false,hero.pal);if(!hero.pal)sword(hx2,hy2,false,hero.sa)}else{const m=o.m;shadow(m.x,m.y);const my=m.y+(Math.sin(frame*.2+m.seed)>.6?-1:0);sprite(SPR.hero,m.x,my,m.flash>0&&!m.burn,true,(m.burn>0?MOBB:m.ghost>0?GHOST:MOBP)[m.pal]);if(!m.flash&&!m.ghost)sword(m.x,my,true);if(m.stun)stars(m.x,my-30);if(m.splash)splash(m.x,my,m.splash)}}
  for(let i=0;i<N;i++)if(OV[i])B[i]=OV[i];
  shadeLayer(1);
  for(let i=nums.length-1;i>=0;i--){const n=nums[i];n.y-=.3;n.life--;digits(n.v,n.x|0,n.y|0,n.crit?YEL:WHITE);if(n.life<=0)nums.splice(i,1)}
